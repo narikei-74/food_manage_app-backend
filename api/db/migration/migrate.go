@@ -8,8 +8,14 @@ import (
 )
 
 func main() {
-	db := db.Connection()
+	db := db.Init()
   defer db.Close()
 
   db.AutoMigrate(&model.User{})
+  db.AutoMigrate(&model.User_family_info{})
+  db.AutoMigrate(&model.Recipe{})
+  db.AutoMigrate(&model.Recipe_material{})
+  db.AutoMigrate(&model.Recipe_category{})
+  db.AutoMigrate(&model.My_recipe{})
+  db.AutoMigrate(&model.Food{})
 }
