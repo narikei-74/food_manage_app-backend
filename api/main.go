@@ -7,7 +7,6 @@ import (
 
 func main() {
   r := gin.Default()
-
   // ログインAPI
   r.POST("/user/login", controller.UserLogin)
   // 会員登録API
