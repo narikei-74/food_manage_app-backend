@@ -6,7 +6,7 @@ import (
 )
 
 func Init() *gorm.DB{
-	db, err := gorm.Open("mysql", "narita:narita1005@tcp(localhost:3306)/food_manage")
+	db, err := gorm.Open("mysql", "narita:narita1005@tcp(mysql)/food_manage")
 
   if err != nil {
     panic(err.Error())

@@ -4,37 +4,33 @@ import (
   "net/http"
 
   "github.com/gin-gonic/gin"
+  "github.com/narikei-74/food_manage_app-backend/api/db"
+  "github.com/narikei-74/food_manage_app-backend/api/model"
+  _ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
-// レシピデータの構造体
-type recipeData struct {
-  Name string `json:name`
-  Img string `json:img`
-}
-
-// MYレシピデータの構造体
-type myRecipeData struct {
-	Monday []recipeData
-	Tuesday []recipeData
-	Wednesday []recipeData
-	Thursday []recipeData
-	Friday []recipeData
-	Saturday []recipeData
-	Sunday []recipeData
-}
-
 func RecipeDataGet(c *gin.Context) {
-  // レシピデータ
-  recipeData := []recipeData{
-    {Name: "唐揚げ", Img: "../../assets/images/karaage.jpg"},
-    {Name: "サラダ", Img: "../../assets/images/sarada.jpg"},
-    {Name: "煮物", Img: "../../assets/images/nimono.jpg"},
-    {Name: "卵をかけたご飯", Img: "../../assets/images/tamagokakegohan.jpg"},
-    {Name: "味噌汁", Img: "../../assets/images/misoshiru.jpg"},
-    {Name: "卵かけご飯", Img: "../../assets/images/tamagokakegohan.jpg"},
-    {Name: "美味しい煮物", Img: "../../assets/images/nimono.jpg"},
-	}
-  c.JSON(http.StatusOK, recipeData)
+  dbHandle := db.Init()
+  defer dbHandle.Close()
+  recipes := []model.Recipe{}
+  err := dbHandle.Model(&model.Recipe{}).Preload("Recipe_materials").Preload("Recipe_categories").Find(&recipes).Error
+
+  // エラーの場合
+  if (err != nil) {
+    c.JSON(http.StatusOK, gin.H{
+      "success": false,
+      "data": "",
+    })
+
+    return
+  }
+
+  c.JSON(http.StatusOK, gin.H{
+    "success": true,
+    "data": recipes,
+  })
+
+  return
 }
 
 func MyRecipeDataSave(c *gin.Context) {
@@ -42,58 +38,7 @@ func MyRecipeDataSave(c *gin.Context) {
 }
 
 func MyRecipeDataGet(c *gin.Context) {
-	myRecipeData := myRecipeData{
-    Monday: []recipeData{
-      {Name: "唐揚げ", Img: "../../assets/images/karaage.jpg"},
-      {Name: "サラダ", Img: "../../assets/images/sarada.jpg"},
-      {Name: "煮物", Img: "../../assets/images/nimono.jpg"},
-      {Name: "卵をかけたご飯", Img: "../../assets/images/tamagokakegohan.jpg"},
-      {Name: "味噌汁", Img: "../../assets/images/misoshiru.jpg"},
-		},
-    Tuesday: []recipeData{
-      {Name: "唐揚げ", Img: "../../assets/images/karaage.jpg"},
-      {Name: "サラダ", Img: "../../assets/images/sarada.jpg"},
-      {Name: "煮物", Img: "../../assets/images/nimono.jpg"},
-      {Name: "卵かけご飯", Img: "../../assets/images/tamagokakegohan.jpg"},
-      {Name: "味噌汁", Img: "../../assets/images/misoshiru.jpg"},
-		},
-    Wednesday: []recipeData{
-      {Name: "唐揚げ", Img: "../../assets/images/karaage.jpg"},
-      {Name: "サラダ", Img: "../../assets/images/sarada.jpg"},
-      {Name: "煮物", Img: "../../assets/images/nimono.jpg"},
-      {Name: "卵をかけたご飯", Img: "../../assets/images/tamagokakegohan.jpg"},
-      {Name: "味噌汁", Img: "../../assets/images/misoshiru.jpg"},
-		},
-    Thursday: []recipeData{
-      {Name: "唐揚げ", Img: "../../assets/images/karaage.jpg"},
-      {Name: "サラダ", Img: "../../assets/images/sarada.jpg"},
-      {Name: "煮物", Img: "../../assets/images/nimono.jpg"},
-      {Name: "卵をかけたご飯", Img: "../../assets/images/tamagokakegohan.jpg"},
-      {Name: "味噌汁", Img: "../../assets/images/misoshiru.jpg"},
-		},
-    Friday: []recipeData{
-      {Name: "唐揚げ", Img: "../../assets/images/karaage.jpg"},
-      {Name: "サラダ", Img: "../../assets/images/sarada.jpg"},
-      {Name: "煮物", Img: "../../assets/images/nimono.jpg"},
-      {Name: "卵をかけたご飯", Img: "../../assets/images/tamagokakegohan.jpg"},
-      {Name: "味噌汁", Img: "../../assets/images/misoshiru.jpg"},
-		},
-    Saturday: []recipeData{
-      {Name: "唐揚げ", Img: "../../assets/images/karaage.jpg"},
-      {Name: "サラダ", Img: "../../assets/images/sarada.jpg"},
-      {Name: "煮物", Img: "../../assets/images/nimono.jpg"},
-      {Name: "卵をかけたご飯", Img: "../../assets/images/tamagokakegohan.jpg"},
-      {Name: "味噌汁", Img: "../../assets/images/misoshiru.jpg"},
-		},
-    Sunday: []recipeData{
-      {Name: "唐揚げ", Img: "../../assets/images/karaage.jpg"},
-      {Name: "サラダ", Img: "../../assets/images/sarada.jpg"},
-      {Name: "煮物", Img: "../../assets/images/nimono.jpg"},
-      {Name: "卵をかけたご飯", Img: "../../assets/images/tamagokakegohan.jpg"},
-      {Name: "味噌汁", Img: "../../assets/images/misoshiru.jpg"},
-		},
-  }
-  c.JSON(http.StatusOK, myRecipeData)
+  c.String(http.StatusOK, "test")
 }
 
 func RecipeCreateSettingGet(c *gin.Context) {
