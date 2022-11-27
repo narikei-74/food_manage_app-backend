@@ -11,6 +11,8 @@ func main() {
   r.POST("/user/login", controller.UserLogin)
   // 会員登録API
   r.POST("/user/register", controller.UserRegister)
+  // ゲスト会員登録API
+  r.POST("/user/register/guest", controller.UserRegisterGuest)
   // ユーザー情報取得API
   r.POST("/user/info/get", controller.UserInfoGet)
   // ユーザー情報保存API
