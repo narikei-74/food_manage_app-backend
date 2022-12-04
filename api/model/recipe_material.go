@@ -10,7 +10,7 @@ type Recipe_material struct {
 	RecipeID uint `gorm:"type:int(11);not null;comment:'レシピID';"`
 	FoodID uint `gorm:"type:int(11);not null;comment:'食材ID';"`
 	Gram uint `gorm:"type:int(11);comment:'食材の量（グラム）';"`
-	Quantity uint `gorm:"type:int(11);comment:'食材の量（数）';"`
+	Quantity float32 `gorm:"type:float;comment:'食材の量（数）';"`
 	Quantity_label string `gorm:"type:varchar(20);comment:'食材の量（ラベル）';"`
 	Unit string `gorm:"type:varchar(10);comment:'任意の材料グループ';"`
 	Food Food
