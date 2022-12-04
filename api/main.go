@@ -19,8 +19,12 @@ func main() {
   r.POST("/user/info/save", controller.UserInfoSave)
   // 献立一覧取得API
   r.POST("/recipedata/get", controller.RecipeDataGet)
-  // my献立保存API
-  r.POST("/myrecipedata/save", controller.MyRecipeDataSave)
+  // my献立作成API
+  r.POST("/myrecipedata/create", controller.MyRecipeDataCreate)
+  // my献立編集API
+  r.POST("/myrecipedata/update", controller.MyRecipeDataUpdate)
+  // my献立削除API
+  r.POST("/myrecipedata/delete", controller.MyRecipeDataDelete)
   // my献立取得API
   r.POST("/myrecipedata/get", controller.MyRecipeDataGet)
   // 献立自動作成条件取得API
