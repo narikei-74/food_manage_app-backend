@@ -54,23 +54,46 @@ func MyRecipeDataSave(c *gin.Context) {
   defer dbHandle.Close()
 
   // リクエストボディ取得
-  myRecipe := model.My_recipe{}
-  err := c.ShouldBindJSON(&myRecipe)
-  if err != nil {
+  requestData := model.My_recipe{}
+  requestErr := c.ShouldBindJSON(&requestData)
+  if requestErr != nil {
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": err,
+      "error": requestErr,
+    })
+    return
+  }
+
+  // dbに存在するかチェック
+  myRecipes := []model.My_recipe{}
+  myRecipeErr := dbHandle.Model(model.My_recipe{}).Where("user_id = ? AND `index` = ?", requestData.UserID, requestData.Index).Limit(1).Find(&myRecipes)
+  if myRecipeErr.Error != nil {
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+      "error": myRecipeErr.Error,
     })
     return
   }
 
   // dbに保存
-  result := dbHandle.Create(&myRecipe)
-  if result.Error != nil {
-    c.JSON(http.StatusBadRequest, gin.H{
-      "success": false,
-    })
-    return
+  if len(myRecipes) == 0 {
+    createResult := dbHandle.Create(&requestData)
+
+    if createResult.Error != nil {
+      c.JSON(http.StatusBadRequest, gin.H{
+        "success": false,
+      })
+      return
+    }
+  } else {
+    updateResult := dbHandle.Model(&model.My_recipe{}).Where("user_id = ? AND `index` = ?", requestData.UserID, requestData.Index).Updates(requestData)
+
+    if updateResult.Error != nil {
+      c.JSON(http.StatusBadRequest, gin.H{
+        "success": false,
+      })
+      return
+    }
   }
 
   // レスポンス
