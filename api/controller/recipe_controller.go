@@ -10,16 +10,31 @@ import (
 )
 
 func RecipeDataGet(c *gin.Context) {
+  // db接続
   dbHandle := db.Init()
   defer dbHandle.Close()
+
+  // リクエストボディ取得
+  type request struct {Offset int}
+  requestData := request{}
+  err := c.ShouldBindJSON(&requestData)
+  if err != nil {
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+      "error": err,
+    })
+    return
+  }
+
+  // レシピデータ取得
   recipes := []model.Recipe{}
-  err := dbHandle.Model(&model.Recipe{}).Preload("Recipe_materials").Preload("Recipe_categories").Find(&recipes).Error
+  recipesGetErr := dbHandle.Model(&model.Recipe{}).Preload("Recipe_materials").Preload("Recipe_categories").Preload("Recipe_materials.Food").Limit(20).Offset(requestData.Offset).Find(&recipes).Error
 
   // エラーの場合
-  if (err != nil) {
+  if (recipesGetErr != nil) {
     c.JSON(http.StatusOK, gin.H{
       "success": false,
-      "data": "",
+      "error": recipesGetErr,
     })
 
     return
@@ -34,11 +49,73 @@ func RecipeDataGet(c *gin.Context) {
 }
 
 func MyRecipeDataSave(c *gin.Context) {
-  c.String(http.StatusOK, "my献立保存API")
+  // db接続
+  dbHandle := db.Init()
+  defer dbHandle.Close()
+
+  // リクエストボディ取得
+  myRecipe := model.My_recipe{}
+  err := c.ShouldBindJSON(&myRecipe)
+  if err != nil {
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+      "error": err,
+    })
+    return
+  }
+
+  // dbに保存
+  result := dbHandle.Create(&myRecipe)
+  if result.Error != nil {
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+    })
+    return
+  }
+
+  // レスポンス
+  c.JSON(http.StatusOK, gin.H{
+    "success": true,
+  })
+
+  return
 }
 
 func MyRecipeDataGet(c *gin.Context) {
-  c.String(http.StatusOK, "test")
+  // db接続
+  dbHandle := db.Init()
+  defer dbHandle.Close()
+
+  // リクエストボディ取得
+  type request struct {UserID int}
+  requestData := request{}
+  err := c.ShouldBindJSON(&requestData)
+  if err != nil {
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+      "error": err,
+    })
+    return
+  }
+
+  // dbから取得
+  myRecipes := []model.My_recipe{}
+  result := dbHandle.Model(&model.My_recipe{}).Preload("Recipe").Preload("Recipe.Recipe_materials").Preload("Recipe.Recipe_categories").Where("user_id = ?", requestData.UserID).Order("index").Find(&myRecipes)
+  if result.Error != nil {
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+      "error": result.Error,
+    })
+    return
+  }
+
+  // レスポンス
+  c.JSON(http.StatusOK, gin.H{
+    "success": true,
+    "data": myRecipes,
+  })
+
+  return
 }
 
 func RecipeCreateSettingGet(c *gin.Context) {

@@ -2,7 +2,6 @@ package controller
 
 import (
   "net/http"
-  "fmt"
 
   "github.com/gin-gonic/gin"
   "github.com/narikei-74/food_manage_app-backend/api/db"
@@ -22,21 +21,23 @@ func UserRegister(c *gin.Context) {
 
 // ゲスト登録
 func UserRegisterGuest(c *gin.Context) {
+  // db接続
   dbHandle := db.Init()
   defer dbHandle.Close()
 
+  // リクエストボディ
   user := model.User{}
   err := c.ShouldBindJSON(&user);
   if err != nil {
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": err.Error(),
+      "error": err,
     })
     return
   }
 
+  // dbに保存
   result := dbHandle.Create(&user)
-
   if result.Error != nil {
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
@@ -50,6 +51,8 @@ func UserRegisterGuest(c *gin.Context) {
     "success": true,
     "userId": user.ID,
   })
+
+  return
 }
 
 
@@ -61,11 +64,11 @@ func UserInfoGet(c *gin.Context) {
 
   // リクエストボディ取得
   user := model.User{}
-  err := c.ShouldBindJSON(&user);
+  err := c.ShouldBindJSON(&user)
   if err != nil {
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": err.Error(),
+      "error": err,
     })
     return
   }
@@ -85,6 +88,8 @@ func UserInfoGet(c *gin.Context) {
     "success": true,
     "data": user,
   })
+
+  return
 }
 
 // ユーザー情報保存
