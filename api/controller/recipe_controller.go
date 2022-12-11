@@ -26,8 +26,8 @@ func RecipeDataGet(c *gin.Context) {
   requestData := request{}
   requestErr := c.ShouldBindJSON(&requestData)
   if requestErr != nil {
+    log.Print(requestErr)
     c.JSON(http.StatusBadRequest, gin.H{
-      log.Print(requestErr)
       "success": false,
     })
     return

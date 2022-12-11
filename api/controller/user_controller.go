@@ -35,7 +35,7 @@ func UserRegisterGuest(c *gin.Context) {
   // リクエストボディ
   user := model.User{}
   requestErr := c.ShouldBindJSON(&user);
-  if requestErr == nil {
+  if requestErr != nil {
     log.Print(requestErr)
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
@@ -48,7 +48,7 @@ func UserRegisterGuest(c *gin.Context) {
   err := tx.Create(&user).Error
   if err != nil {
     tx.Rollback()
-    log.Print(requestErr)
+    log.Print(err)
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
     })
@@ -90,10 +90,10 @@ func UserInfoGet(c *gin.Context) {
 
   // dbから取得
   tx := dbHandle.Begin()
-  err := dbHandle.Model(&model.User{}).Preload("User_family_infos").First(&user, user.ID).Error
+  err := tx.Model(&model.User{}).Preload("User_family_infos").First(&user, user.ID).Error
   if err != nil {
     tx.Rollback()
-    log.Print(requestErr)
+    log.Print(err)
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
     })
