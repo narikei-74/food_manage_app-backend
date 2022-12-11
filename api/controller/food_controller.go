@@ -98,7 +98,8 @@ func FoodStockSave(c *gin.Context) {
   tx := dbHandle.Begin()
   // 作成
   for i := 0; i < len(requestData.Creates); i++ {
-    if err := tx.Create(&requestData.Creates[i]).Error; err != nil {
+    err := tx.Create(&requestData.Creates[i]).Error;
+    if err != nil {
       tx.Rollback()
       c.JSON(http.StatusBadRequest, gin.H{
         "success": false,
@@ -109,7 +110,8 @@ func FoodStockSave(c *gin.Context) {
   }
   // 更新
   for i := 0; i < len(requestData.Updates); i++ {
-    if err := tx.Model(&model.My_food_stock{}).Where("ID = ?", requestData.Updates[i].ID).Updates(requestData.Updates[i]).Error; err != nil {
+    err := tx.Model(&model.My_food_stock{}).Where("ID = ?", requestData.Updates[i].ID).Updates(requestData.Updates[i]).Error;
+    if err != nil {
       tx.Rollback()
 
       c.JSON(http.StatusBadRequest, gin.H{
