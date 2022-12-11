@@ -66,7 +66,6 @@ func UserRegisterGuest(c *gin.Context) {
   return
 }
 
-
 // ユーザー情報取得
 func UserInfoGet(c *gin.Context) {
   // db接続

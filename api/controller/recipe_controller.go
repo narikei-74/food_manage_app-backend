@@ -2,9 +2,11 @@ package controller
 
 import (
   "net/http"
+  "log"
 
   "github.com/gin-gonic/gin"
   "github.com/narikei-74/food_manage_app-backend/api/db"
+  "github.com/narikei-74/food_manage_app-backend/api/logFile"
   "github.com/narikei-74/food_manage_app-backend/api/model"
   _ "github.com/jinzhu/gorm/dialects/mysql"
 )
