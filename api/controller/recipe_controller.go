@@ -13,32 +13,38 @@ func RecipeDataGet(c *gin.Context) {
   // db接続
   dbHandle := db.Init()
   defer dbHandle.Close()
+  
+  // ログオープン
+  file := logFile.LogStart()
+  defer file.Close()
+  log.SetOutput(file)
 
   // リクエストボディ取得
   type request struct {Offset int}
   requestData := request{}
-  err := c.ShouldBindJSON(&requestData)
-  if err != nil {
+  requestErr := c.ShouldBindJSON(&requestData)
+  if requestErr != nil {
     c.JSON(http.StatusBadRequest, gin.H{
+      log.Print(requestErr)
       "success": false,
-      "error": err,
     })
     return
   }
 
-  // レシピデータ取得
+  // dbから取得
+  tx := dbHandle.Begin()
   recipes := []model.Recipe{}
-  recipesGetErr := dbHandle.Model(&model.Recipe{}).Preload("Recipe_materials").Preload("Recipe_categories").Preload("Recipe_materials.Food").Limit(20).Offset(requestData.Offset).Find(&recipes).Error
-
-  // エラーの場合
-  if (recipesGetErr != nil) {
+  err := tx.Model(&model.Recipe{}).Preload("Recipe_materials").Preload("Recipe_categories").Preload("Recipe_materials.Food").Limit(20).Offset(requestData.Offset).Find(&recipes).Error
+  if (err != nil) {
+    log.Print(err)
+    tx.Rollback()
     c.JSON(http.StatusOK, gin.H{
       "success": false,
-      "error": recipesGetErr,
     })
-
     return
   }
+
+  tx.Commit()
 
   c.JSON(http.StatusOK, gin.H{
     "success": true,
@@ -53,26 +59,35 @@ func MyRecipeDataCreate(c *gin.Context) {
   dbHandle := db.Init()
   defer dbHandle.Close()
 
+  // ログオープン
+  file := logFile.LogStart()
+  defer file.Close()
+  log.SetOutput(file)
+
   // リクエストボディ取得
   requestData := model.My_recipe{}
   requestErr := c.ShouldBindJSON(&requestData)
   if requestErr != nil {
+    log.Print(requestErr)
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": requestErr,
     })
     return
   }
 
   // dbに保存
-  result := dbHandle.Create(&requestData)
-  if result.Error != nil {
+  tx := dbHandle.Begin()
+  err := tx.Create(&requestData).Error
+  if err != nil {
+    log.Print(err)
+    tx.Rollback()
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": result.Error,
     })
     return
   }
+
+  tx.Commit()
 
   // レスポンス
   c.JSON(http.StatusOK, gin.H{
@@ -87,27 +102,35 @@ func MyRecipeDataUpdate(c *gin.Context) {
   dbHandle := db.Init()
   defer dbHandle.Close()
 
+  // ログオープン
+  file := logFile.LogStart()
+  defer file.Close()
+  log.SetOutput(file)
+
   // リクエストボディ取得
   requestData := model.My_recipe{}
   requestErr := c.ShouldBindJSON(&requestData)
   if requestErr != nil {
+    log.Print(requestErr)
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": requestErr,
     })
     return
   }
 
   // dbを更新
-  result := dbHandle.Model(&model.My_recipe{}).Where("ID = ?", requestData.ID).Updates(requestData)
-
-  if result.Error != nil {
+  tx := dbHandle.Begin()
+  err := tx.Model(&model.My_recipe{}).Where("ID = ?", requestData.ID).Updates(requestData).Error
+  if err != nil {
+    log.Print(err)
+    tx.Rollback()
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": result.Error,
     })
     return
   }
+
+  tx.Commit()
 
   // レスポンス
   c.JSON(http.StatusOK, gin.H{
@@ -122,28 +145,36 @@ func MyRecipeDataDelete(c *gin.Context) {
   dbHandle := db.Init()
   defer dbHandle.Close()
 
+  // ログオープン
+  file := logFile.LogStart()
+  defer file.Close()
+  log.SetOutput(file)
+
   // リクエストボディ取得
   type request struct {RecipeID int}
   requestData := request{}
   requestErr := c.ShouldBindJSON(&requestData)
   if requestErr != nil {
+    log.Print(requestErr)
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": requestErr,
     })
     return
   }
 
   // dbから削除
-  result := dbHandle.Unscoped().Delete(&model.My_recipe{}, requestData.RecipeID)
-
-  if result.Error != nil {
+  tx := dbHandle.Begin()
+  err := tx.Unscoped().Delete(&model.My_recipe{}, requestData.RecipeID).Error
+  if err != nil {
+    log.Print(err)
+    tx.Rollback()
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": result.Error,
     })
     return
   }
+
+  tx.Commit()
 
   // レスポンス
   c.JSON(http.StatusOK, gin.H{
@@ -158,28 +189,37 @@ func MyRecipeDataGet(c *gin.Context) {
   dbHandle := db.Init()
   defer dbHandle.Close()
 
+  // ログオープン
+  file := logFile.LogStart()
+  defer file.Close()
+  log.SetOutput(file)
+
   // リクエストボディ取得
   type request struct {UserID int}
   requestData := request{}
-  err := c.ShouldBindJSON(&requestData)
-  if err != nil {
+  requestErr := c.ShouldBindJSON(&requestData)
+  if requestErr != nil {
+    log.Print(requestErr)
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": err,
     })
     return
   }
 
   // dbから取得
+  tx := dbHandle.Begin()
   myRecipes := []model.My_recipe{}
-  result := dbHandle.Model(&model.My_recipe{}).Preload("Recipe").Preload("Recipe.Recipe_materials").Preload("Recipe.Recipe_categories").Where("user_id = ?", requestData.UserID).Order("index").Find(&myRecipes)
-  if result.Error != nil {
+  err := tx.Model(&model.My_recipe{}).Preload("Recipe").Preload("Recipe.Recipe_materials").Preload("Recipe.Recipe_categories").Where("user_id = ?", requestData.UserID).Order("index").Find(&myRecipes).Error
+  if err != nil {
+    log.Print(err)
+    tx.Rollback()
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": result.Error,
     })
     return
   }
+
+  tx.Commit()
 
   // レスポンス
   c.JSON(http.StatusOK, gin.H{

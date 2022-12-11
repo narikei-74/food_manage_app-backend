@@ -14,20 +14,27 @@ func FoodsGet(c *gin.Context) {
   dbHandle := db.Init()
   defer dbHandle.Close()
 
-  // 食材データ取得
-  foods := []model.Food{}
-  foodsGetErr := dbHandle.Where("Spices_flag = ?", 0).Find(&foods).Error
+  // ログオープン
+  file := logFile.LogStart()
+  defer file.Close()
+  log.SetOutput(file)
 
-  // エラーの場合
-  if (foodsGetErr != nil) {
+  // dbから取得
+  tx := dbHandle.Begin()
+  foods := []model.Food{}
+  err := tx.Where("Spices_flag = ?", 0).Find(&foods).Error
+  if (err != nil) {
+    log.Print(err)
+    tx.Rollback()
     c.JSON(http.StatusOK, gin.H{
       "success": false,
-      "error": foodsGetErr,
     })
-
     return
   }
 
+  tx.Commit()
+
+  // レスポンス
   c.JSON(http.StatusOK, gin.H{
     "success": true,
     "data": foods,
@@ -39,31 +46,37 @@ func FoodStockGet(c *gin.Context) {
   dbHandle := db.Init()
   defer dbHandle.Close()
 
+  // ログオープン
+  file := logFile.LogStart()
+  defer file.Close()
+  log.SetOutput(file)
+
   // リクエストボディ取得
   type request struct {UserID int}
   requestData := request{}
-  err := c.ShouldBindJSON(&requestData)
-  if err != nil {
+  requestErr := c.ShouldBindJSON(&requestData)
+  if requestErr != nil {
+    log.Print(requestErr)
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": err,
     })
     return
   }
 
   // 残り食材データ取得
+  tx := dbHandle.Begin()
   food_stocks := []model.My_food_stock{}
-  foodStocksGetErr := dbHandle.Model(&model.My_food_stock{}).Preload("Food").Where("user_id = ?", requestData.UserID).Find(&food_stocks).Error
-
-  // エラーの場合
-  if (foodStocksGetErr != nil) {
+  err := tx.Model(&model.My_food_stock{}).Preload("Food").Where("user_id = ?", requestData.UserID).Find(&food_stocks).Error
+  if (err != nil) {
+    log.Print(err)
+    tx.Rollback()
     c.JSON(http.StatusOK, gin.H{
       "success": false,
-      "error": foodStocksGetErr,
     })
-
     return
   }
+
+  tx.Commit()
 
   c.JSON(http.StatusOK, gin.H{
     "success": true,
@@ -79,6 +92,11 @@ func FoodStockSave(c *gin.Context) {
   dbHandle := db.Init()
   defer dbHandle.Close()
 
+  // ログオープン
+  file := logFile.LogStart()
+  defer file.Close()
+  log.SetOutput(file)
+
   // リクエストボディ取得
   type request struct {
     Creates []model.My_food_stock
@@ -87,9 +105,9 @@ func FoodStockSave(c *gin.Context) {
   requestData := request{}
   requestErr := c.ShouldBindJSON(&requestData)
   if requestErr != nil {
+    log.Print(requestErr)
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": requestErr,
     })
     return
   }
@@ -100,25 +118,24 @@ func FoodStockSave(c *gin.Context) {
   for i := 0; i < len(requestData.Creates); i++ {
     err := tx.Create(&requestData.Creates[i]).Error;
     if err != nil {
+      log.Print(err)
       tx.Rollback()
       c.JSON(http.StatusBadRequest, gin.H{
         "success": false,
-        "error": err,
       })
       return
     }
   }
+
   // 更新
   for i := 0; i < len(requestData.Updates); i++ {
     err := tx.Model(&model.My_food_stock{}).Where("ID = ?", requestData.Updates[i].ID).Updates(requestData.Updates[i]).Error;
     if err != nil {
+      log.Print(err)
       tx.Rollback()
-
       c.JSON(http.StatusBadRequest, gin.H{
         "success": false,
-        "error": err,
       })
-
       return
     }
   }
@@ -134,17 +151,23 @@ func FoodStockSave(c *gin.Context) {
 }
 
 func FoodStockDelete(c *gin.Context) {
+  // db接続
   dbHandle := db.Init()
   defer dbHandle.Close()
+
+  // ログオープン
+  file := logFile.LogStart()
+  defer file.Close()
+  log.SetOutput(file)
 
   // リクエストボディ取得
   type request struct {My_food_stock_ID int}
   requestData := request{}
   requestErr := c.ShouldBindJSON(&requestData)
   if requestErr != nil {
+    log.Print(requestErr)
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": requestErr,
     })
     return
   }
@@ -153,10 +176,10 @@ func FoodStockDelete(c *gin.Context) {
   tx := dbHandle.Begin()
   err := tx.Unscoped().Delete(&model.My_food_stock{}, requestData.My_food_stock_ID).Error
   if err != nil {
+    log.Print(err)
     tx.Rollback()
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": err,
     })
     return
   }

@@ -2,9 +2,11 @@ package controller
 
 import (
   "net/http"
+  "log"
 
   "github.com/gin-gonic/gin"
   "github.com/narikei-74/food_manage_app-backend/api/db"
+  "github.com/narikei-74/food_manage_app-backend/api/logFile"
   "github.com/narikei-74/food_manage_app-backend/api/model"
   _ "github.com/jinzhu/gorm/dialects/mysql"
 )
@@ -25,26 +27,35 @@ func UserRegisterGuest(c *gin.Context) {
   dbHandle := db.Init()
   defer dbHandle.Close()
 
+  // ログオープン
+  file := logFile.LogStart()
+  defer file.Close()
+  log.SetOutput(file)
+
   // リクエストボディ
   user := model.User{}
-  err := c.ShouldBindJSON(&user);
-  if err != nil {
+  requestErr := c.ShouldBindJSON(&user);
+  if requestErr == nil {
+    log.Print(requestErr)
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": err,
     })
     return
   }
 
   // dbに保存
-  result := dbHandle.Create(&user)
-  if result.Error != nil {
+  tx := dbHandle.Begin()
+  err := tx.Create(&user).Error
+  if err != nil {
+    tx.Rollback()
+    log.Print(requestErr)
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": result.Error,
     })
     return
   }
+
+  tx.Commit()
 
   // レスポンス
   c.JSON(http.StatusOK, gin.H{
@@ -62,26 +73,35 @@ func UserInfoGet(c *gin.Context) {
   dbHandle := db.Init()
   defer dbHandle.Close()
 
+  // ログオープン
+  file := logFile.LogStart()
+  defer file.Close()
+  log.SetOutput(file)
+
   // リクエストボディ取得
   user := model.User{}
-  err := c.ShouldBindJSON(&user)
-  if err != nil {
+  requestErr := c.ShouldBindJSON(&user)
+  if requestErr != nil {
+    log.Print(requestErr)
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": err,
     })
     return
   }
 
   // dbから取得
-  result := dbHandle.Model(&model.User{}).Preload("User_family_infos").First(&user, user.ID)
-  if result.Error != nil {
+  tx := dbHandle.Begin()
+  err := dbHandle.Model(&model.User{}).Preload("User_family_infos").First(&user, user.ID).Error
+  if err != nil {
+    tx.Rollback()
+    log.Print(requestErr)
     c.JSON(http.StatusBadRequest, gin.H{
       "success": false,
-      "error": result.Error,
     })
     return
   }
+
+  tx.Commit()
 
   // レスポンス
   c.JSON(http.StatusOK, gin.H{
