@@ -16,7 +16,9 @@ func main() {
   // ユーザー情報取得API
   r.POST("/user/info/get", controller.UserInfoGet)
   // ユーザー情報保存API
-  r.POST("/user/info/save", controller.UserInfoSave)
+  r.POST("/user/info/create", controller.UserInfoCreate)
+  // ユーザー情報編集API
+  r.POST("/user/info/update", controller.UserInfoUpdate)
   // 献立一覧取得API
   r.POST("/recipedata/get", controller.RecipeDataGet)
   // my献立作成API

@@ -33,8 +33,8 @@ func UserRegisterGuest(c *gin.Context) {
   log.SetOutput(file)
 
   // リクエストボディ
-  user := model.User{}
-  requestErr := c.ShouldBindJSON(&user);
+  requestData := model.User{}
+  requestErr := c.ShouldBindJSON(&requestData);
   if requestErr != nil {
     log.Print(requestErr)
     c.JSON(http.StatusBadRequest, gin.H{
@@ -45,6 +45,7 @@ func UserRegisterGuest(c *gin.Context) {
 
   // dbに保存
   tx := dbHandle.Begin()
+  user := model.User{}
   err := tx.Create(&user).Error
   if err != nil {
     tx.Rollback()
@@ -78,8 +79,8 @@ func UserInfoGet(c *gin.Context) {
   log.SetOutput(file)
 
   // リクエストボディ取得
-  user := model.User{}
-  requestErr := c.ShouldBindJSON(&user)
+  requestData := model.User{}
+  requestErr := c.ShouldBindJSON(&requestData)
   if requestErr != nil {
     log.Print(requestErr)
     c.JSON(http.StatusBadRequest, gin.H{
@@ -90,6 +91,7 @@ func UserInfoGet(c *gin.Context) {
 
   // dbから取得
   tx := dbHandle.Begin()
+  user := model.User{}
   err := tx.Model(&model.User{}).Preload("User_family_infos").First(&user, user.ID).Error
   if err != nil {
     tx.Rollback()
@@ -111,8 +113,90 @@ func UserInfoGet(c *gin.Context) {
   return
 }
 
-// ユーザー情報保存
-func UserInfoSave(c *gin.Context) {
-  c.String(http.StatusOK, "ユーザー情報保存API")
+// ユーザー情報登録
+func UserInfoCreate(c *gin.Context) {
+  // db接続
+  dbHandle := db.Init()
+  defer dbHandle.Close()
+
+  // ログオープン
+  file := logFile.LogStart()
+  defer file.Close()
+  log.SetOutput(file)
+
+  // リクエストボディ取得
+  requestData := model.User_family_info{}
+  requestErr := c.ShouldBindJSON(&requestData)
+  if requestErr != nil {
+    log.Print(requestErr)
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+    })
+    return
+  }
+
+  // dbに保存
+  tx := dbHandle.Begin()
+  err := tx.Create(&requestData).Error
+  if err != nil {
+    tx.Rollback()
+    log.Print(err)
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+    })
+    return
+  }
+
+  tx.Commit()
+
+  // レスポンス
+  c.JSON(http.StatusOK, gin.H{
+    "success": true,
+  })
+
+  return
 }
 
+// ユーザー情報編集
+func UserInfoUpdate(c *gin.Context) {
+  // db接続
+  dbHandle := db.Init()
+  defer dbHandle.Close()
+
+  // ログオープン
+  file := logFile.LogStart()
+  defer file.Close()
+  log.SetOutput(file)
+
+  // リクエストボディ取得
+  requestData := model.User_family_info{}
+  requestErr := c.ShouldBindJSON(&requestData)
+  if requestErr != nil {
+    log.Print(requestErr)
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+    })
+    return
+  }
+
+  // dbを更新
+  tx := dbHandle.Begin()
+  err := tx.Model(&model.User_family_info{}).Where("ID = ?", requestData.ID).Updates(requestData).Error
+  if err != nil {
+    log.Print(err)
+    tx.Rollback()
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+    })
+    return
+  }
+
+  tx.Commit()
+
+  // レスポンス
+  c.JSON(http.StatusOK, gin.H{
+    "success": true,
+  })
+
+  return
+}
