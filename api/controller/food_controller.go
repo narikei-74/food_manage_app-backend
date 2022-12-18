@@ -24,7 +24,7 @@ func FoodsGet(c *gin.Context) {
   // dbから取得
   tx := dbHandle.Begin()
   foods := []model.Food{}
-  err := tx.Where("Spices_flag = ?", 0).Find(&foods).Error
+  err := tx.Find(&foods).Error
   if (err != nil) {
     log.Print(err)
     tx.Rollback()
