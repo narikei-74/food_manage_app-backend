@@ -8,7 +8,7 @@ import (
 type Food struct {
 	gorm.Model
 	Name string `gorm:"type:varchar(100);not null;comment:'食材名';"`
-	Amazon_id string `gorm:"type:varchar(100);not null;comment:'amazonの商品ID';"`
+	Amazon_url string `gorm:"type:varchar(100);not null;comment:'amazonの商品ID';"`
 	Gram uint `gorm:"type:int(11);comment:'食材の量（グラム）';"`
 	Quantity float32 `gorm:"type:float;comment:'食材の量（数）';"`
 	Price uint `gorm:"type:int(11);not null;comment:'食材の値段';"`
