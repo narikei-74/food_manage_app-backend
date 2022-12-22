@@ -37,8 +37,10 @@ func main() {
   r.POST("/foods/get", controller.FoodsGet)
   // 残り食材取得API
   r.POST("/food_stock/get", controller.FoodStockGet)
-  // 残り食材保存API
-  r.POST("/food_stock/save", controller.FoodStockSave)
+  // 残り食材追加API
+  r.POST("/food_stock/add", controller.FoodStockAdd)
+  // 残り食材更新API
+  r.POST("/food_stock/update", controller.FoodStockUpdate)
   // 残り食材削除API
   r.POST("/food_stock/delete", controller.FoodStockDelete)
 

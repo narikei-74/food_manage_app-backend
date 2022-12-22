@@ -89,7 +89,7 @@ func FoodStockGet(c *gin.Context) {
 
 }
 
-func FoodStockSave(c *gin.Context) {
+func FoodStockAdd(c *gin.Context) {
   // db接続
   dbHandle := db.Init()
   defer dbHandle.Close()
@@ -100,11 +100,7 @@ func FoodStockSave(c *gin.Context) {
   log.SetOutput(file)
 
   // リクエストボディ取得
-  type request struct {
-    Creates []model.My_food_stock
-    Updates []model.My_food_stock
-  }
-  requestData := request{}
+  requestData := model.My_food_stock{}
   requestErr := c.ShouldBindJSON(&requestData)
   if requestErr != nil {
     log.Print(requestErr)
@@ -116,30 +112,57 @@ func FoodStockSave(c *gin.Context) {
 
   // dbに保存
   tx := dbHandle.Begin()
-  // 作成
-  for i := 0; i < len(requestData.Creates); i++ {
-    err := tx.Create(&requestData.Creates[i]).Error;
-    if err != nil {
-      log.Print(err)
-      tx.Rollback()
-      c.JSON(http.StatusBadRequest, gin.H{
-        "success": false,
-      })
-      return
-    }
+  err := tx.Create(&requestData).Error;
+  if err != nil {
+    log.Print(err)
+    tx.Rollback()
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+    })
+    return
   }
 
-  // 更新
-  for i := 0; i < len(requestData.Updates); i++ {
-    err := tx.Model(&model.My_food_stock{}).Where("ID = ?", requestData.Updates[i].ID).Updates(requestData.Updates[i]).Error;
-    if err != nil {
-      log.Print(err)
-      tx.Rollback()
-      c.JSON(http.StatusBadRequest, gin.H{
-        "success": false,
-      })
-      return
-    }
+  tx.Commit()
+
+  // レスポンス
+  c.JSON(http.StatusOK, gin.H{
+    "success": true,
+  })
+
+  return
+}
+
+func FoodStockUpdate(c *gin.Context) {
+  // db接続
+  dbHandle := db.Init()
+  defer dbHandle.Close()
+
+  // ログオープン
+  file := logFile.LogStart()
+  defer file.Close()
+  log.SetOutput(file)
+
+  // リクエストボディ取得
+  requestData := model.My_food_stock{}
+  requestErr := c.ShouldBindJSON(&requestData)
+  if requestErr != nil {
+    log.Print(requestErr)
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+    })
+    return
+  }
+
+  // dbに保存
+  tx := dbHandle.Begin()
+  err := tx.Model(&model.My_food_stock{}).Where("ID = ?", requestData.ID).Updates(requestData).Error;
+  if err != nil {
+    log.Print(err)
+    tx.Rollback()
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+    })
+    return
   }
 
   tx.Commit()
