@@ -186,7 +186,7 @@ func FoodStockDelete(c *gin.Context) {
   log.SetOutput(file)
 
   // リクエストボディ取得
-  type request struct {My_food_stock_ID int}
+  type request struct {Data []int}
   requestData := request{}
   requestErr := c.ShouldBindJSON(&requestData)
   if requestErr != nil {
@@ -199,7 +199,7 @@ func FoodStockDelete(c *gin.Context) {
 
   // 削除
   tx := dbHandle.Begin()
-  err := tx.Unscoped().Delete(&model.My_food_stock{}, requestData.My_food_stock_ID).Error
+  err := tx.Unscoped().Delete(&model.My_food_stock{}, requestData.Data).Error
   if err != nil {
     log.Print(err)
     tx.Rollback()
