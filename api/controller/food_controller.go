@@ -143,7 +143,8 @@ func FoodStockUpdate(c *gin.Context) {
   log.SetOutput(file)
 
   // リクエストボディ取得
-  requestData := model.My_food_stock{}
+  type request struct {Updates []model.My_food_stock}
+  requestData := request{}
   requestErr := c.ShouldBindJSON(&requestData)
   if requestErr != nil {
     log.Print(requestErr)
@@ -155,14 +156,16 @@ func FoodStockUpdate(c *gin.Context) {
 
   // dbに保存
   tx := dbHandle.Begin()
-  err := tx.Model(&model.My_food_stock{}).Where("ID = ?", requestData.ID).Updates(requestData).Error;
-  if err != nil {
-    log.Print(err)
-    tx.Rollback()
-    c.JSON(http.StatusBadRequest, gin.H{
-      "success": false,
-    })
-    return
+  for i := 0; i < len(requestData.Updates); i++ {
+    err := tx.Model(&model.My_food_stock{}).Where("ID = ?", requestData.Updates[i].ID).Updates(requestData.Updates[i]).Error;
+    if err != nil {
+      log.Print(err)
+      tx.Rollback()
+      c.JSON(http.StatusBadRequest, gin.H{
+        "success": false,
+      })
+      return
+    }
   }
 
   tx.Commit()
