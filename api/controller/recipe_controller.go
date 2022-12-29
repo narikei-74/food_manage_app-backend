@@ -211,7 +211,7 @@ func MyRecipeDataGet(c *gin.Context) {
   // dbから取得
   tx := dbHandle.Begin()
   myRecipes := []model.My_recipe{}
-  err := tx.Model(&model.My_recipe{}).Preload("Recipe").Preload("Recipe.Recipe_materials").Preload("Recipe.Recipe_categories").Where("user_id = ?", requestData.UserID).Order("index").Find(&myRecipes).Error
+  err := tx.Model(&model.My_recipe{}).Preload("Recipe").Preload("Recipe.Recipe_materials").Preload("Recipe.Recipe_categories").Preload("Recipe.Recipe_materials.Food").Where("user_id = ?", requestData.UserID).Order("index").Find(&myRecipes).Error
   if err != nil {
     log.Print(err)
     tx.Rollback()
