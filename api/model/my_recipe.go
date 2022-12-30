@@ -11,5 +11,6 @@ type My_recipe struct {
 	RecipeID uint `gorm:"type:int(11);not null;comment:'レシピID';"`
 	Date string `gorm:"type:date;comment:'日付';"`
 	Index uint `gorm:"type:tinyint(1);comment:'レシピ表示順';"`
+	People_num uint `gorm:"type:int(11);not null;default:1;commet:'人数';"`
 	Recipe Recipe
 }
