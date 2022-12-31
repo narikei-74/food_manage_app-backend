@@ -280,6 +280,7 @@ func RecipeDataAdd(c *gin.Context) {
 
   // レシピの材料
   for i := 0; i < len(requestData.Data.Recipe_materials); i++ {
+    requestData.Data.Recipe_materials[i].RecipeID = requestData.Data.ID
     RecipeMaterialsErr := tx.Create(&requestData.Data.Recipe_materials[i]).Error
     if RecipeMaterialsErr != nil {
       log.Print(RecipeMaterialsErr)
@@ -293,6 +294,7 @@ func RecipeDataAdd(c *gin.Context) {
 
   // レシピのタグ
   for i :=0; i < len(requestData.Data.Recipe_categories); i++ {
+    requestData.Data.Recipe_categories[i].RecipeID = requestData.Data.ID
     RecipeCategoriesErr := tx.Create(&requestData.Data.Recipe_categories[i]).Error
     if RecipeCategoriesErr != nil {
       log.Print(RecipeCategoriesErr)
