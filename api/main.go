@@ -21,6 +21,8 @@ func main() {
   r.POST("/user/info/update", controller.UserInfoUpdate)
   // 献立一覧取得API
   r.POST("/recipedata/get", controller.RecipeDataGet)
+  // プライベートレシピ作成API
+  r.POST("/recipedata/add", controller.RecipeDataAdd)
   // my献立作成API
   r.POST("/myrecipedata/create", controller.MyRecipeDataCreate)
   // my献立編集API

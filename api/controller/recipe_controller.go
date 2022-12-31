@@ -239,3 +239,77 @@ func RecipeCreateSettingGet(c *gin.Context) {
 func RecipeCreateSettingSave(c *gin.Context) {
   c.String(http.StatusOK, "献立自動作成条件保存API")
 }
+
+func RecipeDataAdd(c *gin.Context) {
+  // db接続
+  dbHandle := db.Init()
+  defer dbHandle.Close()
+
+  // ログオープン
+  file := logFile.LogStart()
+  defer file.Close()
+  log.SetOutput(file)
+
+  // リクエストボディ取得
+  type request struct {
+    Image string
+    Data model.Recipe
+  }
+  requestData := request{}
+  requestErr := c.ShouldBindJSON(&requestData)
+  if requestErr != nil {
+    log.Print(requestErr)
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+    })
+    return
+  }
+
+  // dbに保存
+  // レシピ
+  tx := dbHandle.Begin()
+  RecipeErr := tx.Create(&requestData.Data).Error
+  if RecipeErr != nil {
+    log.Print(RecipeErr)
+    tx.Rollback()
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+    })
+    return
+  }
+
+  // レシピの材料
+  for i := 0; i < len(requestData.Data.Recipe_materials); i++ {
+    RecipeMaterialsErr := tx.Create(&requestData.Data.Recipe_materials[i]).Error
+    if RecipeMaterialsErr != nil {
+      log.Print(RecipeMaterialsErr)
+      tx.Rollback()
+      c.JSON(http.StatusBadRequest, gin.H{
+        "success": false,
+      })
+      return
+    }
+  }
+
+  // レシピのタグ
+  for i :=0; i < len(requestData.Data.Recipe_categories); i++ {
+    RecipeCategoriesErr := tx.Create(&requestData.Data.Recipe_categories[i]).Error
+    if RecipeCategoriesErr != nil {
+      log.Print(RecipeCategoriesErr)
+      tx.Rollback()
+      c.JSON(http.StatusBadRequest, gin.H{
+        "success": false,
+      })
+      return
+    }
+  }
+
+  tx.Commit()
+
+  // レスポンス
+  c.JSON(http.StatusOK, gin.H{
+    "success": true,
+  })
+
+  return
+}
