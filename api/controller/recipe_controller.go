@@ -217,6 +217,57 @@ func MyRecipeDataDelete(c *gin.Context) {
   return
 }
 
+func MyRecipeDataPeopleNumUpdate(c *gin.Context) {
+  // db接続
+  dbHandle := db.Init()
+  defer dbHandle.Close()
+
+  // ログオープン
+  file := logFile.LogStart()
+  defer file.Close()
+  log.SetOutput(file)
+
+  // リクエストボディ取得
+  type data struct {
+    MyRecipeID int
+    PeopleNum int
+  }
+  type request struct {
+    Data []data
+  }
+  requestData := request{}
+  requestErr := c.ShouldBindJSON(&requestData)
+  if requestErr != nil {
+    log.Print(requestErr)
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+    })
+    return
+  }
+
+  // dbを更新
+  tx := dbHandle.Begin()
+  for i := 0; i < len(requestData.Data); i++ {
+    err := tx.Model(&model.My_recipe{}).Where("ID = ?", requestData.Data[i].MyRecipeID).Update("people_num", requestData.Data[i].PeopleNum).Error;
+    if err != nil {
+      log.Print(err)
+      tx.Rollback()
+      c.JSON(http.StatusBadRequest, gin.H{
+        "success": false,
+      })
+      return
+    }
+  }
+  tx.Commit()
+
+  // レスポンス
+  c.JSON(http.StatusOK, gin.H{
+    "success": true,
+  })
+
+  return
+}
+
 func MyRecipeDataGet(c *gin.Context) {
   // db接続
   dbHandle := db.Init()

@@ -27,6 +27,8 @@ func main() {
   r.POST("/myrecipedata/create", controller.MyRecipeDataCreate)
   // my献立編集API
   r.POST("/myrecipedata/update", controller.MyRecipeDataUpdate)
+  // my献立人数編集API
+  r.POST("/myrecipedata/people_num/update", controller.MyRecipeDataPeopleNumUpdate)
   // my献立削除API
   r.POST("/myrecipedata/delete", controller.MyRecipeDataDelete)
   // my献立取得API
