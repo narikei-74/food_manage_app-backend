@@ -22,7 +22,16 @@ func RecipeDataGet(c *gin.Context) {
   log.SetOutput(file)
 
   // リクエストボディ取得
-  type request struct {Offset int}
+  type searchInfo struct {
+    RecipeName string
+    Material string
+    Category string
+    Free string
+  }
+  type request struct {
+    Offset int
+    SearchInfo searchInfo
+  }
   requestData := request{}
   requestErr := c.ShouldBindJSON(&requestData)
   if requestErr != nil {
@@ -36,7 +45,8 @@ func RecipeDataGet(c *gin.Context) {
   // dbから取得
   tx := dbHandle.Begin()
   recipes := []model.Recipe{}
-  err := tx.Model(&model.Recipe{}).Preload("Recipe_materials").Preload("Recipe_categories").Preload("Recipe_materials.Food").Limit(20).Offset(requestData.Offset).Find(&recipes).Error
+  query := tx.Model(&model.Recipe{}).Preload("Recipe_materials").Preload("Recipe_categories").Preload("Recipe_materials.Food").Limit(20).Offset(requestData.Offset)
+  err := query.Find(&recipes).Error
   if (err != nil) {
     log.Print(err)
     tx.Rollback()
