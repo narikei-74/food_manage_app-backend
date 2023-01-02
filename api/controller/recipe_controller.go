@@ -25,7 +25,7 @@ func RecipeDataGet(c *gin.Context) {
   type searchInfo struct {
     RecipeName string
     Material string
-    Category string
+    Category int
     Free string
   }
   type request struct {
@@ -46,9 +46,27 @@ func RecipeDataGet(c *gin.Context) {
   tx := dbHandle.Begin()
   recipes := []model.Recipe{}
   query := tx.Model(&model.Recipe{}).Preload("Recipe_materials").Preload("Recipe_categories").Preload("Recipe_materials.Food").Limit(20).Offset(requestData.Offset)
-  // if (request.SearchInfo.RecipeName !== "") {
-  //   query += query.Where("name LIKE ?")
-  // }
+  // レシピ名検索
+  if (requestData.SearchInfo.RecipeName != "") {
+    query = query.Where("name LIKE ?", "%"+requestData.SearchInfo.RecipeName+"%")
+  }
+
+  // レシピカテゴリ検索
+  if (requestData.SearchInfo.Category != 0) {
+    query = query.Where("dish_category = ?", requestData.SearchInfo.Category)
+  }
+
+  // 材料検索
+  if (requestData.SearchInfo.Material != "") {
+    query = query.Joins("JOIN recipe_materials ON recipe_materials.recipe_id = recipes.id").Joins("JOIN foods ON foods.id = recipe_materials.food_id").Where("foods.name LIKE ? OR foods.hiragana_name LIKE ?", "%"+requestData.SearchInfo.Material+"%", "%"+requestData.SearchInfo.Material+"%")
+  }
+
+  // レシピタグ検索
+  if (requestData.SearchInfo.Free != "") {
+    query = query.Joins("JOIN recipe_categories ON recipe_categories.recipe_id = recipes.id").Where("recipe_categories.category_name LIKE ? OR recipe_categories.hiragana_name LIKE ?", "%"+requestData.SearchInfo.Free+"%", "%"+requestData.SearchInfo.Free+"%")
+  }
+
+  query.Limit(20).Offset(requestData.Offset)
   err := query.Find(&recipes).Error
   if (err != nil) {
     log.Print(err)
