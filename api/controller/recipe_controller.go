@@ -45,7 +45,7 @@ func RecipeDataGet(c *gin.Context) {
   // dbから取得
   tx := dbHandle.Begin()
   recipes := []model.Recipe{}
-  query := tx.Model(&model.Recipe{}).Preload("Recipe_materials").Preload("Recipe_categories").Preload("Recipe_materials.Food").Limit(20).Offset(requestData.Offset)
+  query := tx.Model(&model.Recipe{}).Joins("Recipe_materials").Joins("Recipe_categories").Joins("Foods").Limit(20).Offset(requestData.Offset)
   err := query.Find(&recipes).Error
   if (err != nil) {
     log.Print(err)
