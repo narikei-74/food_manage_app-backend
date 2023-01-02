@@ -30,7 +30,7 @@ func RecipeDataGet(c *gin.Context) {
   }
   type request struct {
     Offset int
-    SearchInfo searchInfo{}
+    SearchInfo searchInfo
   }
   requestData := request{}
   requestErr := c.ShouldBindJSON(&requestData)
