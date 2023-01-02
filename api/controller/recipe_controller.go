@@ -262,7 +262,6 @@ func RecipeDataAdd(c *gin.Context) {
   }
 
   // dbに保存
-  // レシピ
   tx := dbHandle.Begin()
   RecipeErr := tx.Create(&requestData).Error
   if RecipeErr != nil {
@@ -272,34 +271,6 @@ func RecipeDataAdd(c *gin.Context) {
       "success": false,
     })
     return
-  }
-
-  // レシピの材料
-  for i := 0; i < len(requestData.Recipe_materials); i++ {
-    requestData.Recipe_materials[i].RecipeID = requestData.ID
-    RecipeMaterialsErr := tx.Create(&requestData.Recipe_materials[i]).Error
-    if RecipeMaterialsErr != nil {
-      log.Print(RecipeMaterialsErr)
-      tx.Rollback()
-      c.JSON(http.StatusBadRequest, gin.H{
-        "success": false,
-      })
-      return
-    }
-  }
-
-  // レシピのタグ
-  for i :=0; i < len(requestData.Recipe_categories); i++ {
-    requestData.Recipe_categories[i].RecipeID = requestData.ID
-    RecipeCategoriesErr := tx.Create(&requestData.Recipe_categories[i]).Error
-    if RecipeCategoriesErr != nil {
-      log.Print(RecipeCategoriesErr)
-      tx.Rollback()
-      c.JSON(http.StatusBadRequest, gin.H{
-        "success": false,
-      })
-      return
-    }
   }
 
   tx.Commit()
