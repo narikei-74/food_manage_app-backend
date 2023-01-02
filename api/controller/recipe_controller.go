@@ -251,11 +251,7 @@ func RecipeDataAdd(c *gin.Context) {
   log.SetOutput(file)
 
   // リクエストボディ取得
-  type request struct {
-    Image string
-    Data model.Recipe
-  }
-  requestData := request{}
+  requestData := model.Recipe{}
   requestErr := c.ShouldBindJSON(&requestData)
   if requestErr != nil {
     log.Print(requestErr)
