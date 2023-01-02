@@ -264,7 +264,7 @@ func RecipeDataAdd(c *gin.Context) {
   // dbに保存
   // レシピ
   tx := dbHandle.Begin()
-  RecipeErr := tx.Create(&requestData.Data).Error
+  RecipeErr := tx.Create(&requestData).Error
   if RecipeErr != nil {
     log.Print(RecipeErr)
     tx.Rollback()
@@ -275,9 +275,9 @@ func RecipeDataAdd(c *gin.Context) {
   }
 
   // レシピの材料
-  for i := 0; i < len(requestData.Data.Recipe_materials); i++ {
-    requestData.Data.Recipe_materials[i].RecipeID = requestData.Data.ID
-    RecipeMaterialsErr := tx.Create(&requestData.Data.Recipe_materials[i]).Error
+  for i := 0; i < len(requestData.Recipe_materials); i++ {
+    requestData.Recipe_materials[i].RecipeID = requestData.ID
+    RecipeMaterialsErr := tx.Create(&requestData.Recipe_materials[i]).Error
     if RecipeMaterialsErr != nil {
       log.Print(RecipeMaterialsErr)
       tx.Rollback()
@@ -289,9 +289,9 @@ func RecipeDataAdd(c *gin.Context) {
   }
 
   // レシピのタグ
-  for i :=0; i < len(requestData.Data.Recipe_categories); i++ {
-    requestData.Data.Recipe_categories[i].RecipeID = requestData.Data.ID
-    RecipeCategoriesErr := tx.Create(&requestData.Data.Recipe_categories[i]).Error
+  for i :=0; i < len(requestData.Recipe_categories); i++ {
+    requestData.Recipe_categories[i].RecipeID = requestData.ID
+    RecipeCategoriesErr := tx.Create(&requestData.Recipe_categories[i]).Error
     if RecipeCategoriesErr != nil {
       log.Print(RecipeCategoriesErr)
       tx.Rollback()
