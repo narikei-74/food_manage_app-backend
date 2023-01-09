@@ -19,4 +19,5 @@ func main() {
   db.AutoMigrate(&model.My_recipe{})
   db.AutoMigrate(&model.Food{})
   db.AutoMigrate(&model.My_food_stock{})
+  db.AutoMigrate(&model.Auto_create_recipe_settings{})
 }
