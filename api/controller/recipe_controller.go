@@ -314,14 +314,6 @@ func MyRecipeDataGet(c *gin.Context) {
   return
 }
 
-func RecipeCreateSettingGet(c *gin.Context) {
-  c.String(http.StatusOK, "献立自動作成条件取得API")
-}
-
-func RecipeCreateSettingSave(c *gin.Context) {
-  c.String(http.StatusOK, "献立自動作成条件保存API")
-}
-
 func RecipeDataAdd(c *gin.Context) {
   // db接続
   dbHandle := db.Init()
@@ -353,6 +345,120 @@ func RecipeDataAdd(c *gin.Context) {
       "success": false,
     })
     return
+  }
+
+  tx.Commit()
+
+  // レスポンス
+  c.JSON(http.StatusOK, gin.H{
+    "success": true,
+  })
+
+  return
+}
+
+func AutoCreateRecipeSettingsGet(c *gin.Context) {
+  // db接続
+  dbHandle := db.Init()
+  defer dbHandle.Close()
+
+  // ログオープン
+  file := logFile.LogStart()
+  defer file.Close()
+  log.SetOutput(file)
+
+  // リクエストボディ取得
+  type request struct {UserID int}
+  requestData := request{}
+  requestErr := c.ShouldBindJSON(&requestData)
+  if requestErr != nil {
+    log.Print(requestErr)
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+    })
+    return
+  }
+
+  // dbから取得
+  tx := dbHandle.Begin()
+  settings := []model.Auto_create_recipe_settings{}
+  err := tx.Model(&model.Auto_create_recipe_settings{}).Where("user_id = ?", requestData.UserID).Limit(1).Find(&settings).Error
+  if err != nil {
+    log.Print(err)
+    tx.Rollback()
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+    })
+    return
+  }
+
+  tx.Commit()
+
+  // レスポンス
+  c.JSON(http.StatusOK, gin.H{
+    "success": true,
+    "data": settings,
+  })
+
+  return
+}
+
+func AutoCreateRecipeSettingsSave(c *gin.Context) {
+  // db接続
+  dbHandle := db.Init()
+  defer dbHandle.Close()
+
+  // ログオープン
+  file := logFile.LogStart()
+  defer file.Close()
+  log.SetOutput(file)
+
+  // リクエストボディ取得
+  requestData := model.Auto_create_recipe_settings{}
+  requestErr := c.ShouldBindJSON(&requestData)
+  if requestErr != nil {
+    log.Print(requestErr)
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+    })
+    return
+  }
+
+  tx := dbHandle.Begin()
+  settings := []model.Auto_create_recipe_settings{}
+  err := tx.Model(&model.Auto_create_recipe_settings{}).Where("user_id = ?", requestData.UserID).Find(&settings).Error
+  if err != nil {
+    log.Print(err)
+    tx.Rollback()
+    c.JSON(http.StatusBadRequest, gin.H{
+      "success": false,
+    })
+    return
+  }
+
+  // dbに保存
+  if (len(settings) == 0) {
+    // 追加処理
+    RecipeErr := tx.Create(&requestData).Error
+    if RecipeErr != nil {
+      log.Print(RecipeErr)
+      tx.Rollback()
+      c.JSON(http.StatusBadRequest, gin.H{
+        "success": false,
+      })
+      return
+    }
+  } else {
+    // 更新処理
+    err := tx.Model(&model.Auto_create_recipe_settings{}).Where("UserID = ?", requestData.UserID).Updates(requestData).Error
+    if err != nil {
+      log.Print(err)
+      tx.Rollback()
+      c.JSON(http.StatusBadRequest, gin.H{
+        "success": false,
+      })
+      return
+    }
   }
 
   tx.Commit()

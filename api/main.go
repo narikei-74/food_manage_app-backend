@@ -34,9 +34,9 @@ func main() {
   // my献立取得API
   r.POST("/myrecipedata/get", controller.MyRecipeDataGet)
   // 献立自動作成条件取得API
-  r.POST("/recipe_create_setting/get", controller.RecipeCreateSettingGet)
+  r.POST("/auto_create_recipe_settings/get", controller.AutoCreateRecipeSettingsGet)
   // 献立自動作成条件保存API
-  r.POST("/recipe_create_setting/save", controller.RecipeCreateSettingSave)
+  r.POST("/auto_create_recipe_settings/save", controller.AutoCreateRecipeSettingsSave)
   // 食材取得API
   r.POST("/foods/get", controller.FoodsGet)
   // 残り食材取得API
