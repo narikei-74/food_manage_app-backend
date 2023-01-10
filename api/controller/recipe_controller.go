@@ -450,7 +450,7 @@ func AutoCreateRecipeSettingsSave(c *gin.Context) {
     }
   } else {
     // 更新処理
-    err := tx.Model(&model.Auto_create_recipe_settings{}).Where("UserID = ?", requestData.UserID).Updates(requestData).Error
+    err := tx.Model(&model.Auto_create_recipe_settings{}).Where("user_id = ?", requestData.UserID).Updates(requestData).Error
     if err != nil {
       log.Print(err)
       tx.Rollback()
