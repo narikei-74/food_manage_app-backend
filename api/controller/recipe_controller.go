@@ -450,7 +450,14 @@ func AutoCreateRecipeSettingsSave(c *gin.Context) {
     }
   } else {
     // 更新処理
-    err := tx.Model(&model.Auto_create_recipe_settings{}).Where("user_id = ?", requestData.UserID).Updates(requestData).Error
+    updateData := map[string]interface{}{
+      "UserID": requestData.UserID,
+      "Hate_foods": requestData.Hate_foods,
+      "Is_only_rice": requestData.Is_only_rice,
+      "Is_only_meat": requestData.Is_only_meat,
+      "Is_only_fish": requestData.Is_only_fish,
+    }
+    err := tx.Model(&model.Auto_create_recipe_settings{}).Where("user_id = ?", requestData.UserID).Updates(updateData).Error
     if err != nil {
       log.Print(err)
       tx.Rollback()
